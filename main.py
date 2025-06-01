@@ -10,10 +10,11 @@ data_dir = "mnist_data"
 #FIXED IT WORKS NOW :)
 #backpropogation - in progress 👍
 #Fix softmax so that it doesn't have zeros theres an explaination just follow it
+#FIXED
 
 
 #if I can be fucked fix the matrixes so that it doesn't use reduntant functions
-
+#FIXED
 
 #CHANGES
 #Added softmax instead of sigmoid for the output layer, since its better for class classification
@@ -21,7 +22,6 @@ data_dir = "mnist_data"
 
 
 def main():
-    print("Hello world")
     np.set_printoptions(suppress=False, precision=3)
     #copied from gemini:
     train_images_path = 'mnist_data/train-images.idx3-ubyte'
