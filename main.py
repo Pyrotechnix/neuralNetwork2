@@ -21,6 +21,7 @@ data_dir = "mnist_data"
 
 
 def main():
+    print("Hello world")
     np.set_printoptions(suppress=False, precision=3)
     #copied from gemini:
     train_images_path = 'mnist_data/train-images.idx3-ubyte'
