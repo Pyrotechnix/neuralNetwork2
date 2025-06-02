@@ -38,7 +38,7 @@ def sigmoidDerivativeBetter(sigNum):
 
 
 def activationFunction(n):
-    return np.maximum(0.01 * n, n)
+    return np.maximum(0, n)
 
 
 class neuralNetwork:
@@ -79,7 +79,7 @@ class neuralNetwork:
                 self._biasMatrix.append(biasLayer.reshape(-1, 1))
                 print(f"bias matrix for layer {i}:\n{biasLayer}")
 
-            for i in range(1, len(layerInformation)):
+            for i in range(0, len(layerInformation)):
                 layer = np.zeros(layerInformation[i])
                 self._activationValues.append(layer.reshape(-1, 1))
 
@@ -134,6 +134,7 @@ class neuralNetwork:
             print('feeding forward!')
             currentLayer = np.array(inputs).T
             # print(currentLayer)
+            self._activationValues[0] = currentLayer
             for i in range(0, len(self._weightMatrix) - 1):
                 # multiplying and adding weights
                 currentLayer = matrixMultiply(self._weightMatrix[i], currentLayer)
@@ -141,7 +142,7 @@ class neuralNetwork:
                 currentLayer = matrixAdd(matrixBroadcast(self._biasMatrix[i], len(currentLayer[0])), currentLayer)
                 # sigmoid results
                 currentLayer = activationFunction(currentLayer)
-                self._activationValues[i] = currentLayer
+                self._activationValues[i + 1] = currentLayer
                 # print(f"layer {i + 1}: {currentLayer}\n-------")
             currentLayer = matrixMultiply(self._weightMatrix[len(self._weightMatrix) - 1], currentLayer)
             # adding biases
@@ -159,6 +160,8 @@ class neuralNetwork:
             summedDenominators = np.sum(np.exp(shiftedCurrentLayer), axis=0, keepdims=True)
             currentLayer = np.exp(shiftedCurrentLayer) / summedDenominators
             self._currentOutput = currentLayer
+            self._activationValues[-1] = currentLayer
+            #setting last layer of activation values too just in case
             # print(f"activation values:\n{self._activationValues}")
             print("current layer after softmax:")
             print(currentLayer)
@@ -205,6 +208,37 @@ class neuralNetwork:
         print(outputBiasDerivatives)
         #fuck bro ts genius asf
         #these are the output derivatives for the last layer.
+        #next goal is to find error signals of previous activation values.
+        #you can do this in the same way as the weights, just in reverse, since the derivative of the cost with respect
+        #to the activation values will just be the weight, which will be averaged in the same way.
+        print("weights:")
+        print(self._weightMatrix[-1])
+        print("derivatives of outputs: ")
+        print(outputDerivatives)
+        #goal is to have it such that
+        #This multiplication gets the sum of each weight for the neurons in the previous layer, and multiplies them by
+        #the cost for the output neuron they correspond to, showing the average direction that the neuron should change
+        prevActivationDerivatives = self._weightMatrix[-1].T @ outputDerivatives
+        for i in range(2, len(self._weightMatrix) + 1):
+
+            #Something is wrong here, I'm not too sure what yet but I'll figure it out tomorrow
+            print(prevActivationDerivatives)
+            print("weight changes:")
+            print(self._activationValues[-3])
+            print("penis")
+            print(self._activationValues[(-i - 1)])
+            beforeActivationDerivatives = prevActivationDerivatives * (self._activationValues[(-i - 1)] > 0).astype(float)
+            #This makes the derivatives 0 if the activation for this
+            print(self._weightMatrix[-i] * self._activationValues[(-i - 1)].T)
+            print("bias changes:")
+            print(prevActivationDerivatives)
+            print("weight matrix: ")
+            print(i)
+            print(self._weightMatrix[-i])
+            prevActivationDerivatives = self._weightMatrix[-i].T @ prevActivationDerivatives
+            print("previous activation derivatives:")
+            #now that I have these values, I assume I can just use them to propogate back through the network
+
 
 
 
