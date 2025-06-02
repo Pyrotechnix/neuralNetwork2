@@ -1,7 +1,7 @@
 import neural_network
 import numpy as np
 import idx2numpy
-from matplotlib import pyplot as plt
+#from matplotlib import pyplot as plt
 
 
 data_dir = "mnist_data"
@@ -11,14 +11,14 @@ data_dir = "mnist_data"
 #backpropogation - in progress 👍
 #Fix softmax so that it doesn't have zeros theres an explaination just follow it
 #FIXED
-
-
 #if I can be fucked fix the matrixes so that it doesn't use reduntant functions
 #FIXED
 
 #CHANGES
 #Added softmax instead of sigmoid for the output layer, since its better for class classification
 #switched to using multi class cross entropy outputs
+#switched to ReLU since sigmoid has issues
+#Changed softmax function to subtract a value from all exponentials to avoid over/underflow
 
 
 def main():
@@ -42,7 +42,7 @@ def main():
 
 
 
-    nn.formalCalculatingLossAndStuff(300)
+    nn.formalCalculatingLossAndStuff(1)
 
 
 """
