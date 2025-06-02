@@ -182,9 +182,7 @@ class neuralNetwork:
         outputDerivatives = (self._currentOutput - np.hstack(expected)) / len(self._currentOutput[0])
         #the / n part is important for later as it uses matrix multiplication to calcualte averages
         #otherwise it would have to multiply by 1/n later, but since we do it here it doesn't have to
-        print(outputDerivatives)
         #activation values for the second last layer
-        print(self._activationValues[-2])
         #this part is really cool and handles the averages automatically:
         #since the matrix multiplication is the dot prod of rows and columns
         #output derivatives is a C * B matrix, where B is the batch size
@@ -200,44 +198,43 @@ class neuralNetwork:
         #then it is already divided by 1/n, since that was done before
         #this does work I understand it and if I forget it thats ok because it works
         outputWeightDerivatives = outputDerivatives @ self._activationValues[-2].T
+        print("changes to weights")
         print(outputWeightDerivatives)
-        print(self._weightMatrix[-1])
         #this is more or less the same, but since the biases are just adjusted by an amount, you can simply
         #sum the derivatives to get an overall value that the biases should be adjusted by
         outputBiasDerivatives = np.sum(outputDerivatives, axis=1, keepdims=True)
-        print(outputBiasDerivatives)
         #fuck bro ts genius asf
         #these are the output derivatives for the last layer.
         #next goal is to find error signals of previous activation values.
         #you can do this in the same way as the weights, just in reverse, since the derivative of the cost with respect
         #to the activation values will just be the weight, which will be averaged in the same way.
-        print("weights:")
-        print(self._weightMatrix[-1])
         print("derivatives of outputs: ")
         print(outputDerivatives)
         #goal is to have it such that
         #This multiplication gets the sum of each weight for the neurons in the previous layer, and multiplies them by
         #the cost for the output neuron they correspond to, showing the average direction that the neuron should change
-        prevActivationDerivatives = self._weightMatrix[-1].T @ outputDerivatives
-        for i in range(2, len(self._weightMatrix) + 1):
-
+        beforeActivationDerivatives = outputDerivatives
+        for i in range(1, len(self._weightMatrix) + 1):
+            #multiplying weights by derivative of current layer to get activation derivatives of prev layer
+            prevActivationDerivatives = self._weightMatrix[-i].T @ beforeActivationDerivatives
+            #derivative should also have relu activations
+            beforeActivationDerivatives = prevActivationDerivatives * (self._activationValues[-i - 1] > 0).astype(float)
+            #i think this is wrong ^
+            print("previous error signals:")
             #Something is wrong here, I'm not too sure what yet but I'll figure it out tomorrow
-            print(prevActivationDerivatives)
+            #fixed, it was because I wasn't applying the activation derivative in the same loop
+            print(beforeActivationDerivatives)
+            print(self._activationValues[-i-1])
             print("weight changes:")
-            print(self._activationValues[-3])
-            print("penis")
-            print(self._activationValues[(-i - 1)])
-            beforeActivationDerivatives = prevActivationDerivatives * (self._activationValues[(-i - 1)] > 0).astype(float)
             #This makes the derivatives 0 if the activation for this
-            print(self._weightMatrix[-i] * self._activationValues[(-i - 1)].T)
+            print(beforeActivationDerivatives @ self._activationValues[-i - 1].T)
             print("bias changes:")
-            print(prevActivationDerivatives)
+            print(np.sum(beforeActivationDerivatives, axis=1, keepdims=True))
             print("weight matrix: ")
             print(i)
             print(self._weightMatrix[-i])
-            prevActivationDerivatives = self._weightMatrix[-i].T @ prevActivationDerivatives
-            print("previous activation derivatives:")
-            #now that I have these values, I assume I can just use them to propogate back through the network
+
+
 
 
 
