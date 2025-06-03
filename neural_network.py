@@ -1,4 +1,6 @@
+import numpy
 import numpy as np
+import os
 
 
 # these functions are kinda useless as I rewrote them after finding out that the built-in methods were way better
@@ -86,19 +88,31 @@ class neuralNetwork:
                 self._activationValues.append(layer.reshape(-1, 1))
 
     # trainingData should be only a 2 dimensional array, as it is converted into a 2 dimensional vector later
-    def setTrainingData(self, trainingData, trainingLabels):
+    def setTrainingData(self, trainingData, trainingLabels, testingData, testingLabels):
         self._trainingData = np.zeros([len(trainingData), len(trainingData[0].flatten())])
+        self._testingData = np.zeros([len(testingData), len(trainingData[0].flatten())])
+        print(self._testingData.shape)
         for i in range(0, len(self._trainingData)):
             self._trainingData[i] = trainingData[i].flatten()
+        for i in range(0, len(self._testingData)):
+            self._testingData[i] = testingData[i].flatten()
         # diving all values by the max to keep them in between 0 and 1 instead of making them big, since the
         # numpy exp function doesn't like large numbers, and its considered good practice anyway
         self._trainingData /= self._trainingData.max()
+        self._testingData /= self._testingData.max()
         print(self._trainingData[1])
+        print(self._testingData[1].shape, self._testingData[1])
         self.interpretCatagories(trainingLabels)
         self._trainingLabels = np.zeros([len(trainingData), len(self._catagoryDict), 1])
         for i in range(0, len(trainingLabels)):
             self._trainingLabels[i] = self._catagoryDict[str(trainingLabels[i])]
         print(self._trainingLabels)
+        self._testingLabels = np.zeros([len(testingData), len(self._catagoryDict), 1])
+        for i in range(0, len(testingLabels)):
+            self._testingLabels[i] = self._catagoryDict[str(testingLabels[i])]
+        print(self._trainingLabels[0], self._trainingLabels[0].shape)
+        print(self._testingLabels[0], self._testingLabels[0].shape)
+        print(self._catagoryDict)
         print("$$$")
 
     #converts labels to a list of catagories, and assigns an output neuron for each
@@ -228,6 +242,43 @@ class neuralNetwork:
         self.calculateLoss(self._trainingLabels[:sampleCount])
         print('loss derivatives')
         self.backpropagate(self._trainingLabels[:sampleCount])
+        self.testAccuracy()
+
+
+    def train(self, epochNum):
+        batchSize = 256
+        loopCount = int(len(self._trainingData) / batchSize)
+        for i in range(0, epochNum):
+            for j in range(0, loopCount):
+                self.feedForward(self._trainingData[i*batchSize:(i+1)*batchSize])
+                self.backpropagate(self._trainingLabels[i*batchSize:(i+1)*batchSize])
+            print(f"epoch number {i} completed")
+            self.testAccuracy()
+
+
 
     def testAccuracy(self):
-        print("Accuracy = 100%!")
+        correctCount = 0
+        """
+        for i in range(0, 1000):
+            print(self._trainingData[10000 + i])
+            print(self._trainingLabels[10000 + i])
+            print("Expected answer")
+            #maximum value in the output array
+            print(np.argmax(self._trainingLabels[10000 + i], axis=0))
+            output = self.feedForward([self._trainingData[10000 + i]])
+            print("Actual answer")
+            print(np.argmax(output, axis=0))
+            #fix
+            print(np.argmax(output, axis=0), np.argmax(self._trainingLabels[10000 + i], axis=0))
+            if np.argmax(output, axis=0) == np.argmax(self._trainingLabels[10000 + i], axis=0):
+                correctCount += 1
+                print(correctCount)
+        """
+        with numpy.printoptions(threshold=numpy.inf):
+            checkArray = np.argmax(self.feedForward(self._testingData), axis=0)
+            checkArray -= np.argmax(np.hstack(self._testingLabels), axis=0)
+            for i in checkArray:
+                if i == 0:
+                    correctCount += 1
+        print(f"Accuracy = {correctCount / len(self._testingData) * 100}%")
