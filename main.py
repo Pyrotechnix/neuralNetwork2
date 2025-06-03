@@ -38,7 +38,7 @@ def main():
     print(len(trainingData))
     print(trainingLabels)
     #784 input layer 2x layers of 16 10 output neurons corresponding to each letter
-    nn = neural_network.neuralNetwork([784, 200, 100, 10])
+    nn = neural_network.neuralNetwork([784, 512, 256, 10])
     #nn.setValues([[[4, 8], [1, 10]], [[1, 1]]], [[[1], [4]], [[0], [0]]])
     #
     arr = trainingData[0]
@@ -49,11 +49,11 @@ def main():
     for i in range(0, 1):
         nn.formalCalculatingLossAndStuff(1000)
     nn.testAccuracy()
-    nn.train(10)
+    nn.train(100)
 
 
 
-
+"""
     f, subpl = plt.subplots(5, 10)
     for i in range(0, 5):
         for j in range(0, 10):
@@ -61,6 +61,7 @@ def main():
             subpl[i][j].set_title(testingLabels[i * 10 + j])
             subpl[i][j].axis('off')
     plt.show()
+"""
 
 
 main()

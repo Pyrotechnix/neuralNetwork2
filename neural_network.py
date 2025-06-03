@@ -1,6 +1,7 @@
 import numpy
 import numpy as np
 import os
+from matplotlib import pyplot as plt
 
 
 # these functions are kinda useless as I rewrote them after finding out that the built-in methods were way better
@@ -239,10 +240,7 @@ class neuralNetwork:
 
     def formalCalculatingLossAndStuff(self, sampleCount):
         self.feedForward(self._trainingData[:sampleCount])
-        self.calculateLoss(self._trainingLabels[:sampleCount])
-        print('loss derivatives')
         self.backpropagate(self._trainingLabels[:sampleCount])
-        self.testAccuracy()
 
 
     def train(self, epochNum):
@@ -250,8 +248,8 @@ class neuralNetwork:
         loopCount = int(len(self._trainingData) / batchSize)
         for i in range(0, epochNum):
             for j in range(0, loopCount):
-                self.feedForward(self._trainingData[i*batchSize:(i+1)*batchSize])
-                self.backpropagate(self._trainingLabels[i*batchSize:(i+1)*batchSize])
+                self.feedForward(self._trainingData[j*batchSize:(j+1)*batchSize])
+                self.backpropagate(self._trainingLabels[j*batchSize:(j+1)*batchSize])
             print(f"epoch number {i} completed")
             self.testAccuracy()
 
