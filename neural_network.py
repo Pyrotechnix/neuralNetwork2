@@ -53,6 +53,8 @@ class neuralNetwork:
     _biasMatrix = None
     _trainingData = None
     _trainingLabels = None
+    _testingData = None
+    _testingLabels = None
     _currentOutput = None
     _activationValues = None
     _catagoryDict = None
@@ -131,7 +133,6 @@ class neuralNetwork:
         if len(inputs[0]) != self.inputCount:
             print('invalid operation, number of inputs does not match')
         else:
-            print('feeding forward!')
             currentLayer = np.array(inputs).T
             # print(currentLayer)
             self._activationValues[0] = currentLayer
@@ -147,15 +148,11 @@ class neuralNetwork:
             currentLayer = matrixMultiply(self._weightMatrix[len(self._weightMatrix) - 1], currentLayer)
             # adding biases
             currentLayer = matrixAdd(matrixBroadcast(self._biasMatrix[len(self._biasMatrix) - 1], len(currentLayer[0])), currentLayer)
-            print("Current layer before softmax:")
-            print(currentLayer)
             #softmax function
             maxPerSample = np.max(currentLayer, axis=0, keepdims=True)
-            print(maxPerSample)
             #employing a technique to prevent overflow where you shift untreated outputs down by the max value
             #this is supposed to prevent overflow and underflow
             shiftedCurrentLayer = currentLayer - maxPerSample
-            print(shiftedCurrentLayer)
             #creating the denominators for the softmax function by column
             summedDenominators = np.sum(np.exp(shiftedCurrentLayer), axis=0, keepdims=True)
             currentLayer = np.exp(shiftedCurrentLayer) / summedDenominators
@@ -163,21 +160,19 @@ class neuralNetwork:
             self._activationValues[-1] = currentLayer
             #setting last layer of activation values too just in case
             # print(f"activation values:\n{self._activationValues}")
-            print("current layer after softmax:")
-            print(currentLayer)
             return currentLayer
 
     #calculate the loss using MULTI ClASS CROSS ENTROPY 😨😨😨
     def calculateLoss(self, expected):
-        print("Output:")
-        print(self._currentOutput)
-        print("Expected:")
-        print(expected)
         losses = np.hstack(expected) * np.log(self._currentOutput)
-        print(losses)
+        print("Total loss:")
+        print(np.sum(losses))
         return -np.sum(losses) / len(losses[0])
 
-    def calculateLossDerivatives(self, expected):
+    def backpropagate(self, expected):
+        learningRate = 0.001
+        weightChanges = []
+        biasChanges = []
         #giving us (actual - expected) / n
         outputDerivatives = (self._currentOutput - np.hstack(expected)) / len(self._currentOutput[0])
         #the / n part is important for later as it uses matrix multiplication to calcualte averages
@@ -198,124 +193,40 @@ class neuralNetwork:
         #then it is already divided by 1/n, since that was done before
         #this does work I understand it and if I forget it thats ok because it works
         outputWeightDerivatives = outputDerivatives @ self._activationValues[-2].T
-        print("changes to weights")
-        print(outputWeightDerivatives)
+        weightChanges.append(outputWeightDerivatives)
         #this is more or less the same, but since the biases are just adjusted by an amount, you can simply
         #sum the derivatives to get an overall value that the biases should be adjusted by
         outputBiasDerivatives = np.sum(outputDerivatives, axis=1, keepdims=True)
+        biasChanges.append(outputBiasDerivatives)
         #fuck bro ts genius asf
         #these are the output derivatives for the last layer.
         #next goal is to find error signals of previous activation values.
         #you can do this in the same way as the weights, just in reverse, since the derivative of the cost with respect
         #to the activation values will just be the weight, which will be averaged in the same way.
-        print("derivatives of outputs: ")
-        print(outputDerivatives)
-        #goal is to have it such that
-        #This multiplication gets the sum of each weight for the neurons in the previous layer, and multiplies them by
-        #the cost for the output neuron they correspond to, showing the average direction that the neuron should change
-        beforeActivationDerivatives = outputDerivatives
-        for i in range(1, len(self._weightMatrix) + 1):
-            #multiplying weights by derivative of current layer to get activation derivatives of prev layer
-            prevActivationDerivatives = self._weightMatrix[-i].T @ beforeActivationDerivatives
-            #derivative should also have relu activations
-            beforeActivationDerivatives = prevActivationDerivatives * (self._activationValues[-i - 1] > 0).astype(float)
-            #i think this is wrong ^
-            print("previous error signals:")
-            #Something is wrong here, I'm not too sure what yet but I'll figure it out tomorrow
-            #fixed, it was because I wasn't applying the activation derivative in the same loop
-            print(beforeActivationDerivatives)
-            print(self._activationValues[-i-1])
-            print("weight changes:")
-            #This makes the derivatives 0 if the activation for this
-            print(beforeActivationDerivatives @ self._activationValues[-i - 1].T)
-            print("bias changes:")
-            print(np.sum(beforeActivationDerivatives, axis=1, keepdims=True))
-            print("weight matrix: ")
-            print(i)
-            print(self._weightMatrix[-i])
-
-
-
-
-
+        for i in range(1, len(self._weightMatrix)):
+            d_prevZ = self._weightMatrix[-i].T @ outputDerivatives
+            d_prevZ = d_prevZ * (self._activationValues[-i - 1] > 0).astype(float)
+            """print(f"activations for layer {len(self._weightMatrix) - i}")
+            print(self._activationValues[-i - 1])
+            print(f"errors for layer {len(self._weightMatrix) - i}")
+            print(d_prevZ)
+            print(f"activation values for layer: {len(self._weightMatrix) - i - 1}")
+            print(self._activationValues[-i - 2])
+            print(f"changes of weights for layer {len(self._weightMatrix) - i}")
+            """
+            weightDerivatives = d_prevZ @ self._activationValues[-i - 2].T
+            weightChanges.append(weightDerivatives)
+            biasChanges.append(np.sum(d_prevZ, axis=1, keepdims=True))
+            outputDerivatives = d_prevZ
+        for i in range(0, len(self._weightMatrix)):
+            self._weightMatrix[i] -= weightChanges[-1 - i] * learningRate
+        for i in range(0, len(self._biasMatrix)):
+            self._biasMatrix[i] -= biasChanges[-1 - i] * learningRate
 
     def formalCalculatingLossAndStuff(self, sampleCount):
         self.feedForward(self._trainingData[:sampleCount])
         self.calculateLoss(self._trainingLabels[:sampleCount])
         print('loss derivatives')
-        self.calculateLossDerivatives(self._trainingLabels[:sampleCount])
+        self.backpropagate(self._trainingLabels[:sampleCount])
 
-
-    def testValue(self, index):
-        # input nth training data sample into the network
-        self.feedForward(self._trainingData[index])
-        # error = (actual - expected) ^ 2
-        print(f"actual output: {self._currentOutput}")
-        print(f"expected output: {self._trainingLabels[index]}")
-        return np.square(self._currentOutput - self._trainingLabels[index])
-
-    # assuming batches are made previously, using all of self._trainingData as a batch for now
-    def testBatch(self, batchSize):
-        print(f"testing batch of {batchSize}")
-        self.feedForward(self._trainingData[:batchSize])
-        # print(f"actual output:\n{self._currentOutput}")
-        labels = np.hstack(self._trainingLabels[:batchSize])
-        # do this to get it into the right format, as before it wasn't
-        # print(f"expected output:\n{labels}")
-        costs = self.calculateLoss(labels)
-        return costs
-
-    # to work out derivative in terms of weight:
-    # should be the average derivative in terms of each weight over all training samples
-    # final total cost = sum of all
-
-    # INCORRECT VVVV
-
-    def calculateWeightDerivatives(self, layer, expectedResults):
-        learningRate = 0.1
-        print(f"Weights:\n{self._weightMatrix[layer]}")
-        print(f"Activations of previous layer:\n{self._activationValues[layer - 1]}")
-        print(f"Activations of current layer:\n{self._activationValues[layer]}")
-        print(f"Expected results:\n{expectedResults}")
-        # derivatives = self._activationValues[layer - 1] * ("""sigmoid derivative""" * (2 * activationValues[layer]
-        derivatives = (2 * (self._activationValues[layer] - expectedResults) * sigmoidDerivative(
-            self._activationValues[layer]))
-        derivatives = derivatives.sum(axis=1, keepdims=True)
-        print(derivatives)
-        # print(derivatives * self._activationValues[layer - 1].T)
-        summedActivationValues = self._activationValues[layer - 1].sum(axis=1, keepdims=True)
-        print(summedActivationValues)
-        derivatives = derivatives * summedActivationValues.T
-        print("---")
-        print(derivatives * learningRate)
-        self._weightMatrix[layer] -= derivatives * learningRate
-
-    def backPropagate(self):
-        expected = self._trainingLabels
-        actual = self._currentOutput
-        # want to find derivative of cost function with respect to weights
-        # for each layer
-        # cost function = (y - actualY)^2/number of outputs
-        # dC/dW = dC/dt * dy/dW
-
-        # for each neuron y = sigmoid(Sum of (weights * z + bias))
-
-
-    def backOneLayer(self, l):
-        learningRate = 0.1
-        # print("$$$$$$$$$$$")
-        # weight derivative: dC/dA*dA/dZ*dZ/dW
-        # A = (a - expected)^2
-        # dC/dA = 2(a - expected)
-        # dA/dZ = sigmoid derivative z
-        # z = w*a(-1) + b
-        # dZ/dW = a(-1)
-        # dC/dW = 2(a - expected) * sigmoidDerivativeBetter(a) * a(-1)
-        weightDerivative = 2 * (self._activationValues[l] - self._trainingLabels)
-        weightDerivative *= sigmoidDerivativeBetter(self._activationValues[l])
-        weightDerivative *= np.sum(self._activationValues[l - 1])
-        # print(weightDerivative)
-        # print(self._weightMatrix[l])
-        # print("modifying values")
-        self._weightMatrix[l] -= (weightDerivative * learningRate)
-        # print(self._weightMatrix[l])
+    def testAccuracy(self):

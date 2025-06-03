@@ -15,7 +15,7 @@ data_dir = "mnist_data"
 #FIXED
 
 #CHANGES
-#Added softmax instead of sigmoid for the output layer, since its better for class classification
+#Add softmax instead of sigmoid for the output layer, since its better for class classification
 #switched to using multi class cross entropy outputs
 #switched to ReLU since sigmoid has issues
 #Changed softmax function to subtract a value from all exponentials to avoid over/underflow
@@ -32,17 +32,17 @@ def main():
     print(len(trainingData))
     print(trainingLabels)
     #784 input layer 2x layers of 16 10 output neurons corresponding to each letter
-    nn = neural_network.neuralNetwork([784, 5, 5, 10])
+    nn = neural_network.neuralNetwork([784, 20, 20, 10])
     #nn.setValues([[[4, 8], [1, 10]], [[1, 1]]], [[[1], [4]], [[0], [0]]])
     #
     arr = trainingData[0]
     print(arr.flatten())
     nn.setTrainingData(trainingData, trainingLabels)
-    nn.backPropagate()
 
 
+    for i in range(0, 5000):
+        nn.formalCalculatingLossAndStuff(1000)
 
-    nn.formalCalculatingLossAndStuff(1)
 
 
 """
