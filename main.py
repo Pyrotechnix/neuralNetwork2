@@ -38,18 +38,13 @@ def main():
     print(len(trainingData))
     print(trainingLabels)
     #784 input layer 2x layers of 16 10 output neurons corresponding to each letter
-    nn = neural_network.neuralNetwork([784, 512, 256, 10])
+    nn = neural_network.neuralNetwork([784, 100, 10])
     #nn.setValues([[[4, 8], [1, 10]], [[1, 1]]], [[[1], [4]], [[0], [0]]])
     #
     arr = trainingData[0]
     print(arr.flatten())
     nn.setTrainingData(trainingData, trainingLabels, testingData, testingLabels)
-
-
-    for i in range(0, 1):
-        nn.formalCalculatingLossAndStuff(1000)
-    nn.testAccuracy()
-    nn.train(100)
+    nn.train(1000)
 
 
 

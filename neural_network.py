@@ -185,7 +185,7 @@ class neuralNetwork:
         return -np.sum(losses) / len(losses[0])
 
     def backpropagate(self, expected):
-        learningRate = 0.001
+        learningRate = 0.05
         weightChanges = []
         biasChanges = []
         #giving us (actual - expected) / n
@@ -244,10 +244,12 @@ class neuralNetwork:
 
 
     def train(self, epochNum):
-        batchSize = 256
+        batchSize = 100
         loopCount = int(len(self._trainingData) / batchSize)
         for i in range(0, epochNum):
             for j in range(0, loopCount):
+                #if j % 10 == 0:
+                #    print(f"batch number {j}")
                 self.feedForward(self._trainingData[j*batchSize:(j+1)*batchSize])
                 self.backpropagate(self._trainingLabels[j*batchSize:(j+1)*batchSize])
             print(f"epoch number {i} completed")
@@ -273,10 +275,17 @@ class neuralNetwork:
                 correctCount += 1
                 print(correctCount)
         """
-        with numpy.printoptions(threshold=numpy.inf):
-            checkArray = np.argmax(self.feedForward(self._testingData), axis=0)
-            checkArray -= np.argmax(np.hstack(self._testingLabels), axis=0)
-            for i in checkArray:
-                if i == 0:
-                    correctCount += 1
-        print(f"Accuracy = {correctCount / len(self._testingData) * 100}%")
+
+        checkArray = np.argmax(self.feedForward(self._testingData), axis=0)
+        checkArray -= np.argmax(np.hstack(self._testingLabels), axis=0)
+        for i in checkArray:
+            if i == 0:
+                correctCount += 1
+        print(f"Unseen accuracy = {correctCount / len(self._testingData) * 100}%")
+        correctCount = 0
+        checkArray = np.argmax(self.feedForward(self._trainingData), axis=0)
+        checkArray -= np.argmax(np.hstack(self._trainingLabels), axis=0)
+        for i in checkArray:
+            if i == 0:
+                correctCount += 1
+        print(f"Training data accuracy = {correctCount / len(self._trainingData) * 100}%")
