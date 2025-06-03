@@ -6,7 +6,7 @@ from matplotlib import pyplot as plt
 
 data_dir = "mnist_data"
 
-#TO DO: Fix shape of batches so that the loss is actually correct
+#TO DO: Fix      of batches so that the loss is actually correct
 #FIXED IT WORKS NOW :)
 #backpropogation
 #POSSIBLY DONE I DONT KNOW
@@ -15,6 +15,11 @@ data_dir = "mnist_data"
 #if I can be fucked fix the matrixes so that it doesn't use reduntant functions
 #FIXED
 #Impliment testing
+#FIXED
+#Impliment saving of network so that I dont have to retrain every time
+
+#Impliment ui (probably with tkinter)
+#impliment installer
 
 #CHANGES
 #Add softmax instead of sigmoid for the output layer, since its better for class classification
@@ -44,7 +49,8 @@ def main():
     arr = trainingData[0]
     print(arr.flatten())
     nn.setTrainingData(trainingData, trainingLabels, testingData, testingLabels)
-    nn.train(1000)
+    nn.train(1)
+    nn.saveNetwork('fortnite')
 
 
 

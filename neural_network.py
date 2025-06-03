@@ -92,7 +92,6 @@ class neuralNetwork:
     def setTrainingData(self, trainingData, trainingLabels, testingData, testingLabels):
         self._trainingData = np.zeros([len(trainingData), len(trainingData[0].flatten())])
         self._testingData = np.zeros([len(testingData), len(trainingData[0].flatten())])
-        print(self._testingData.shape)
         for i in range(0, len(self._trainingData)):
             self._trainingData[i] = trainingData[i].flatten()
         for i in range(0, len(self._testingData)):
@@ -102,7 +101,6 @@ class neuralNetwork:
         self._trainingData /= self._trainingData.max()
         self._testingData /= self._testingData.max()
         print(self._trainingData[1])
-        print(self._testingData[1].shape, self._testingData[1])
         self.interpretCatagories(trainingLabels)
         self._trainingLabels = np.zeros([len(trainingData), len(self._catagoryDict), 1])
         for i in range(0, len(trainingLabels)):
@@ -111,8 +109,6 @@ class neuralNetwork:
         self._testingLabels = np.zeros([len(testingData), len(self._catagoryDict), 1])
         for i in range(0, len(testingLabels)):
             self._testingLabels[i] = self._catagoryDict[str(testingLabels[i])]
-        print(self._trainingLabels[0], self._trainingLabels[0].shape)
-        print(self._testingLabels[0], self._testingLabels[0].shape)
         print(self._catagoryDict)
         print("$$$")
 
@@ -289,3 +285,10 @@ class neuralNetwork:
             if i == 0:
                 correctCount += 1
         print(f"Training data accuracy = {correctCount / len(self._trainingData) * 100}%")
+
+    def saveNetwork(self, path):
+        print("Saving network...")
+        for i in self._weightMatrix:
+            print(i)
+            print("----------")
+        print(self._biasMatrix)
