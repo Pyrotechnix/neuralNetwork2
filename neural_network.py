@@ -2,6 +2,7 @@ import numpy
 import numpy as np
 import os
 from matplotlib import pyplot as plt
+import csv
 
 
 # these functions are kinda useless as I rewrote them after finding out that the built-in methods were way better
@@ -247,9 +248,11 @@ class neuralNetwork:
                 #if j % 10 == 0:
                 #    print(f"batch number {j}")
                 self.feedForward(self._trainingData[j*batchSize:(j+1)*batchSize])
-                self.backpropagate(self._trainingLabels[j*batchSize:(j+1)*batchSize])
+                self.backpropagate(self._trainingLabels[j*batchSize:(j+1)*batchSize])   
             print(f"epoch number {i} completed")
-            self.testAccuracy()
+            if i % 10 == 0:
+                print(f"for epoch number {i}:")
+                self.testAccuracy()
 
 
 
@@ -288,7 +291,30 @@ class neuralNetwork:
 
     def saveNetwork(self, path):
         print("Saving network...")
+        print("WEIGHT SHAPES:")
         for i in self._weightMatrix:
-            print(i)
+            print(i.shape)
+            print(i == i.flatten().reshape(i.shape))
+
+        #going to flatten arrays to save them, and then reshape them afterwards using shapes i'll store
+
+        print("WEIGHTS:")
+        with open(path + "_weights", 'w', newline='') as csvfile:
+            writer = csv.writer(csvfile)
+            for i in self._weightMatrix:
+                writer.writerow(i.shape)
+                writer.writerow(i.flatten())
+        print("BIASES:")
+        for i in self._biasMatrix:
+            print(i.flatten())
             print("----------")
-        print(self._biasMatrix)
+
+            
+    def loadNetwork(self, path):
+        with open(path + "_weights", 'r', newline='') as csvfile:
+            reader = csv.reader(csvfile)
+            print(reader)
+            print("---")
+            for row in reader:
+                print(np.array(row))
+        

@@ -6,8 +6,8 @@ from matplotlib import pyplot as plt
 
 data_dir = "mnist_data"
 
-#TO DO: Fix      of batches so that the loss is actually correct
-#FIXED IT WORKS NOW :)
+#TO DO: Fix shape of batches so that the loss is actually correct
+#FIXED
 #backpropogation
 #POSSIBLY DONE I DONT KNOW
 #Fix softmax so that it doesn't have zeros theres an explaination just follow it
@@ -49,8 +49,12 @@ def main():
     arr = trainingData[0]
     print(arr.flatten())
     nn.setTrainingData(trainingData, trainingLabels, testingData, testingLabels)
-    nn.train(1)
-    nn.saveNetwork('fortnite')
+    trainInput = input("Would you like to train a new database? (Y/N): ")
+    if trainInput == 'y' or trainInput == 'Y':
+        print("Training...")
+        nn.train(1)
+    nn.saveNetwork("neuralNetwork")
+    nn.loadNetwork("neuralNetwork")
 
 
 
